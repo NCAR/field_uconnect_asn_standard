@@ -1,0 +1,7 @@
+name = Field UCARConnect ASN Standard
+description = Provides ability to align with ASN Standards for the UCARConnect repository
+
+dependencies[] = uconnect
+package = "UCARConnect"
+version = "7.x-1.0"
+core = 7.x

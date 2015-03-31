@@ -1,0 +1,208 @@
+<?php
+/**
+ * @file
+ * Provide UCARConnect controlled ASN standard IDs
+ */
+
+/**
+ * Implements hook_field_info().
+ */
+function field_uconnect_asn_standard_field_info() {
+	return array('asn_standard' => array(
+			'label' => t('UCARConnect ASN Standard'),
+			'description' => t('This field stores an ASN Code in the database.'),
+			'default_widget' => 'asn_standard_field',
+			'default_formatter' => 'uconnect_asn_standard_default',
+		), );
+}
+
+/**
+ * Implements hook_field_widget_info_alter().
+ */
+function field_uconnect_asn_standard_field_widget_info() {
+	return array('field_uconnect_asn_standard' => array(
+			'label' => t('Text field'),
+			'field types' => array('asn_standard'),
+		), );
+}
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function field_uconnect_asn_standard_field_settings_form($field, $instance, $has_data) {
+	$settings = $field['settings'];
+
+	$form = array();
+	return $form;
+}
+
+/**
+ * Implements hook_field_instance_settings_form().
+ */
+function field_uconnect_asn_standard_field_instance_settings_form($field, $instance) {
+	$settings = $instance['settings'];
+
+	$form = array();
+	return $form;
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function field_uconnect_asn_standard_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+	switch ($instance['widget']['type']) {
+		case 'field_uconnect_asn_standard' :
+			/* let them enter the full URL codes to make it easier for users
+			 * our code will strip out the URL
+			 */
+			$element['asn_code'] = array(
+				'#type' => 'textfield',
+				'#title' => t('ASN Code'),
+				'#default_value' => isset($items[$delta]['asn_code']) ? $items[$delta]['asn_code'] : '',
+				'#required' => $element['#required'],
+			);
+			
+			break;
+	}
+	return $element;
+}
+
+/**
+ * Implements hook_field_presave().
+ */
+function field_uconnect_asn_standard_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+	foreach ($items as $delta => $item) {
+		if (isset($item['asn_code'])) {
+			// just ensure is only the code part; strip out URL part
+			if(preg_match("/^http/", $item['asn_code'])) {
+				$a_temp = explode('/',$item['asn_code']);
+				$items[$delta]['asn_code'] = $a_temp[count($a_temp) -1];
+			} else {
+				$items[$delta]['asn_code'] = $item['asn_code'];
+			}
+			
+		}
+	}
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function field_uconnect_asn_standard_field_is_empty($item, $field) {
+	if (empty($item['asn_code'])) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/**
+ * Implements hook_field_validate().
+ * 
+ * ensure no duplicates and ensures values are legit
+ */
+function field_uconnect_asn_standard_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+
+	$a_list = array();
+	foreach ($items as $delta => $item) {
+		if (isset($item['asn_code']) && $item['asn_code'] != '') {
+			if (!field_uconnect_asn_standard_lookup($item['asn_code'])) {
+				$errors[$field['field_name']][$langcode][$delta][] = array(
+					'error' => 'field_uconnect_asn_standard_invalid',
+            		'message' => t('Invalid ASN Code: '.$item['asn_code']),);
+			}
+			
+			if(!in_array($item['asn_code'], $a_list)){
+				$a_list[] = $item['asn_code'];
+			} else {
+				$errors[$field['field_name']][$langcode][$delta][] = array(
+					'error' => 'field_uconnect_asn_standard_duplicate',
+            		'message' => t('Duplicate ASN Code: '.$item['asn_code']),);
+			}
+		}
+	}
+}
+
+function field_uconnect_asn_standard_field_widget_error($element, $error, $form, &$form_state) {
+    switch ($error['error']) {
+        case 'field_uconnect_asn_standard_invalid':
+        	form_error($element, $error['message']);
+        	break;
+        case 'field_uconnect_asn_standard_duplicate':
+        	form_error($element, $error['message']);
+        	break;
+    }
+}
+
+/** 
+ * look up standard to see if real
+ */
+ function field_uconnect_asn_standard_lookup($asn_code){
+ 	
+	$results_obj = uconnect_query_service(variable_get('uconnect_asn_standard_service_url').$asn_code);
+	$xml = new SimpleXMLElement($results_obj -> data);
+
+	if($xml->GetStandard){
+		return true;
+	}
+	return false;
+ }
+/**
+ * Implements hook_field_formatter_info().
+ */
+function field_uconnect_asn_standard_field_formatter_info() {
+	return array('uconnect_asn_standard_default' => array(
+			'label' => t('Default'),
+			'field types' => array('asn_standard'),
+		), 
+		'uconnect_asn_standard_complete' => array(
+			'label' => t('Complete Text'),
+			'field types' => array('asn_standard'),
+		), 
+		
+		);
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function field_uconnect_asn_standard_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+	$element = array();
+	switch ($display['type']) {
+		case 'uconnect_asn_standard_default' :
+			foreach ($items as $delta => $item) {
+				if (isset($item['asn_code'])) {
+					$element[$delta]['#markup'] = variable_get('uconnect_asn_standard_base_url').$item['asn_code'];
+				}
+			}
+			break;
+		case 'uconnect_asn_standard_complete' :
+			foreach ($items as $delta => $item) {
+				if (isset($item['asn_code'])) {
+					$results_obj = uconnect_query_service(variable_get('uconnect_asn_standard_service_url').$item['asn_code']);
+					$xml = new SimpleXMLElement($results_obj -> data);
+					$a_stds = array();
+					uconnect_asn_standard_resolve_text($xml->GetStandard->result->Standard,$a_stds,true);
+					$txt = '';
+					$resolved_standard = uconnect_as_standard_text($a_stds,$txt);
+
+					$element[$delta]['#markup'] = '<ul class="uconnect_asn_standard">'.$resolved_standard.'</ul>';
+				}
+			}
+			break;
+	}
+	return $element;
+}
+
+// flatten standard
+function uconnect_as_standard_text($array) {
+	
+    foreach($array as $key=>$value) {
+    	$txt = '<li>'.$key;
+        if(is_array($value) && count($value) > 0) {
+            $txt .= '<ul>'.uconnect_as_standard_text($value).'</ul>';
+        }
+		$txt .= '</li>';
+    }
+
+	return $txt;
+}
