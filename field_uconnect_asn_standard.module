@@ -137,11 +137,15 @@ function field_uconnect_asn_standard_field_widget_error($element, $error, $form,
  * look up standard to see if real
  */
  function field_uconnect_asn_standard_lookup($asn_code){
- 	
-	$results_obj = uconnect_query_service(variable_get('uconnect_asn_standard_service_url').$asn_code);
+
+	if(preg_match("/^http/", $asn_code)){
+		$results_obj = uconnect_query_service(variable_get('uconnect_asn_standard_service_url').$asn_code);
+	} else {
+		$results_obj = uconnect_query_service(variable_get('uconnect_asn_standard_service_url').variable_get('uconnect_asn_standard_base_url').$asn_code);
+	}
 	$xml = new SimpleXMLElement($results_obj -> data);
 
-	if($xml->GetStandard){
+	if($xml->ListStandards->results->result->Standard){
 		return true;
 	}
 	return false;

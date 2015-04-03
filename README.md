@@ -9,7 +9,7 @@ The UCARConnect ASN Standard module is a Drupal 7 module that provides a field f
 
 This module requires the following modules/libraries:
 
-[UCARConnect] (https://github.com/slclark/uconnect)
+[UCARConnect] (https://github.com/UCAR/uconnect)
 
 ## Installation
 
@@ -32,3 +32,8 @@ Current maintainers:
 
 * [Sharon Clark] (https://github.com/slclark)
 
+## Version history
+
+Version  | NOTES
+------------- | -------------
+7.x-1.1  | validate asn

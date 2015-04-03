@@ -3,5 +3,5 @@ description = Provides ability to align with ASN Standards for the UCARConnect r
 
 dependencies[] = uconnect
 package = "UCARConnect"
-version = "7.x-1.0"
+version = "7.x-1.1"
 core = 7.x
