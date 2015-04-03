@@ -32,3 +32,8 @@ Current maintainers:
 
 * [Sharon Clark] (https://github.com/slclark)
 
+## Version history
+
+Version  | NOTES
+------------- | -------------
+7.x-1.1  | validate asn
