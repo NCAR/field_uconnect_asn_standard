@@ -185,7 +185,9 @@ function field_uconnect_asn_standard_field_formatter_view($entity_type, $entity,
 					$results_obj = uconnect_query_service(variable_get('uconnect_asn_standard_service_url').$item['asn_code']);
 					$xml = new SimpleXMLElement($results_obj -> data);
 					$a_stds = array();
-					uconnect_asn_standard_resolve_text($xml->GetStandard->result->Standard,$a_stds,true);
+					if(isset($xml->GetStandard->result->Standard)){
+						uconnect_asn_standard_resolve_text($xml->GetStandard->result->Standard,$a_stds,true);
+					}
 					$txt = '';
 					$resolved_standard = uconnect_as_standard_text($a_stds,$txt);
 
@@ -199,7 +201,7 @@ function field_uconnect_asn_standard_field_formatter_view($entity_type, $entity,
 
 // flatten standard
 function uconnect_as_standard_text($array) {
-	
+	$txt = '';
     foreach($array as $key=>$value) {
     	$txt = '<li>'.$key;
         if(is_array($value) && count($value) > 0) {
